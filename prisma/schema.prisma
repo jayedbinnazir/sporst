@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @unique
+  email     String   @unique
+  password  String
+  role      UserRole @default(COACH) // Roles: ADMIN or COACH
+  isVerified Boolean @default(false)
+  otp       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile   Profile?
+  plans     Plan[]
+}
+
+enum UserRole {
+  ADMIN
+  COACH
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  clubName  String
+  teamName  String
+  city      String
+  country   String
+  logoUrl   String?
+  coachName String
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  players   Player[]
+}
+
+model Player {
+  id          Int      @id @default(autoincrement())
+  name        String
+  birthYear   Int
+  position    PlayerPosition
+  preferredFoot PreferredFoot
+  profileId   Int
+  profile     Profile  @relation(fields: [profileId], references: [id])
+}
+
+enum PlayerPosition {
+  GOALKEEPER
+  DEFENDER
+  MIDFIELDER
+  FORWARD
+}
+
+enum PreferredFoot {
+  LEFT
+  RIGHT
+  BOTH
+}
+
+model Plan {
+  id          Int      @id @default(autoincrement())
+  name        String
+  priceMonthly Float
+  priceYearly  Float
+  features    String
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}
